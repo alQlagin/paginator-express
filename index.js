@@ -8,12 +8,10 @@ function Paginator(query, config) {
     var totalQ = query.model.count(query._conditions),
         limit = parseInt(config.limit || 10),
         page = parseInt(config.page || 1) - 1;
-    if (limit) {
-        query.limit(limit);
-        if (page) {
-            query.skip(limit * page);
-        }
-    }
+
+    query.limit(limit);
+    query.skip(limit * page);
+
     if (config.filters) {
         query.where(config.filters);
         totalQ.where(config.filters);
