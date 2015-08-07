@@ -5,30 +5,26 @@ var _ = require('underscore')
     , async = require('async');
 
 function Paginator(query, config) {
-    var totalQ = query.model.count(query._conditions),
-        limit = parseInt(config.limit || 10),
+    var limit = parseInt(config.limit || 10),
         page = parseInt(config.page || 1) - 1;
 
     query.limit(limit);
     query.skip(limit * page);
 
-    if (config.filters) {
-        query.where(config.filters);
-        totalQ.where(config.filters);
-    }
     this.limit = limit;
     this.page = page + 1;
+    var totalQ = query.model.count(query._conditions);
     this.data = query.exec();
     this.total = totalQ.exec();
 }
 
 function PaginatorController(query, filters) {
     filters = filters || {};
+    var Query = query.toConstructor();
     return function (req, res, next) {
         var reqFilters = {};
         _.extend(reqFilters, filters, req.query.filters);
-        var paginator = new Paginator(query, {
-            filters: reqFilters,
+        var paginator = new Paginator(Query(reqFilters, {populate: req.query.populate}), {
             limit: req.query.count,
             page: req.query.page
         });
