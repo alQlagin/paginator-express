@@ -23,7 +23,13 @@ function PaginatorController(query, filters) {
     var Query = query.toConstructor();
     return function (req, res, next) {
         var reqFilters = {};
-        _.extend(reqFilters, filters, req.query.filters);
+        _.extend(reqFilters, filters);
+        _.each(req.query.filters, function(param, key){
+            if (param=='null'){
+                param = null;
+            }
+            reqFilters[key] = param;
+        });
         var paginator = new Paginator(Query(reqFilters, {populate: req.query.populate||''}), {
             limit: req.query.count,
             page: req.query.page
