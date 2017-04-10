@@ -24,24 +24,32 @@ function PaginatorController(query, filters) {
     return function (req, res, next) {
         var reqFilters = {};
         _.extend(reqFilters, filters);
-        _.each(req.query.filters, function(param, key){
-            if (param=='null'){
+        _.each(req.query.filters, function (param, key) {
+            if (param == 'null') {
                 param = null;
             }
             reqFilters[key] = param;
         });
-        var paginator = new Paginator(Query(reqFilters, {populate: req.query.populate||''}), {
+        var paginator = new Paginator(Query(reqFilters, {populate: req.query.populate || ''}), {
             limit: req.query.count,
             page: req.query.page
         });
         async.parallel({
             data: function (done) {
-                paginator.data.addBack(function (err, data) {
-                    done(err, data);
-                })
+                paginator.data.then(function (data) {
+                        done(null, data);
+                    },
+                    function (err, data) {
+                        done(err);
+                    })
             },
             total: function (done) {
-                paginator.total.addBack(done);
+                paginator.total.then(function (data) {
+                        done(null, data);
+                    },
+                    function (err, data) {
+                        done(err);
+                    });
             }
         }, function (err, result) {
             if (err)
